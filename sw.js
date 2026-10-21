@@ -1,5 +1,5 @@
 // Hoja: funciona sin conexión. Los datos del usuario NO pasan por aquí (están en el almacenamiento del navegador).
-const CACHE = 'hoja-202610211200';
+const CACHE = 'hoja-202610212000';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icons/apple-touch-icon.png', './icons/icon-192.png', './icons/icon-512.png', './vendor/zxing.min.js'];
 const NET_TIMEOUT = 3500; // con mala cobertura la red puede tardar muchísimo en fallar; pasado este tiempo se usa la copia guardada
 

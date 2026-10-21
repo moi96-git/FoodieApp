@@ -2,12 +2,6 @@
 
 Registro sencillo de comidas, calorías y macronutrientes. Funciona en el navegador, sin cuentas y sin servidor: los datos se guardan solo en el dispositivo de cada persona.
 
-## Publicar con GitHub Pages
-
-1. Sube todo el contenido de esta carpeta a la raíz de un repositorio (por ejemplo `hoja`).
-2. En el repositorio: **Settings → Pages → Build and deployment**, elige *Deploy from a branch*, rama `main` y carpeta `/ (root)`.
-3. En un par de minutos la app estará en `https://TU-USUARIO.github.io/hoja/`.
-
 ## Instalar en el iPhone
 
 1. Abre la dirección en **Safari**.
