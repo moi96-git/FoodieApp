@@ -1,2 +1,2 @@
-- Incorpora en la hoja de "ajustes" una nota al final de la página que diga: “Utilizando Version XX de la app”. Con cada cambio que hagamos debes sumar una versión en el orden V1.1 - V1.2 ... V1.X hasta que definamos cambio a versión 2
+- Incorpora en la hoja de "ajustes" una nota al final de la página que diga: “Utilizando Version XX de la app”. Con cada cambio que hagamos debes sumar una versión en el orden V1.1 - V1.2 ... V1.X hasta que definamos cambio a versión 2. (Ten en cuenta que deben ser cambios que ajusten funcionalidad y programación de index.html)
 - Acumula un descriptivo de los cambios realizado en el archivo "version.md", poniendo el nombre de la versión y un detalle de los cambios.

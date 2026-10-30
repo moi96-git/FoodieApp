@@ -1,5 +1,57 @@
 # Hoja: historial de versiones
 
+## Versión 1.4 · Cierre del día
+
+Objetivo: que cada día se cierre, salga bien o mal, y que volver a registrar sea fácil y sin culpa. La constancia importa más que el número exacto.
+
+### Reglas
+1. **Días en gris:** un día pasado (anterior a hoy), igual o posterior a la fecha en que empieza la regla (`closeFrom`), que no esté cerrado ni sea de ayuno, queda **abierto** y se muestra en gris, tenga o no alimentos. Hoy nunca es gris.
+2. **Los días grises no cuentan** en ninguna estadística: promedios, días en rango, progreso, hábitos, horario, ultraprocesados, comidas en casa ni Constancia.
+3. **Cerrado como completo** cuenta igual que antes. **Marcado** (fuera de plan o incompleto) no entra en promedios ni progreso, pero sigue visible y cuenta en Constancia si tiene alimentos.
+4. Un día gris o marcado **siempre se puede terminar**: se edita y se cierra como completo.
+5. **Límite:** si un mes acumula más de 5 días grises, el progreso en kg de ese mes, y el de las semanas que lo tocan, se muestra en 0, con el motivo y el botón "Cerrar días pendientes". Al cerrar días se recalcula.
+6. **Transparencia:** debajo del progreso y de las medias aparece "Calculado con X de Y días" y cuántos días quedan sin contar (sin cerrar y marcados). Un día sin contar suma 0 kg; si fue de exceso, el progreso real es algo menor.
+7. **Migración:** los datos existentes no cambian. La regla empieza el día en que se instala la 1.4; los días anteriores con alimentos o ayuno quedan cerrados como completos (`legacy`), y los días en blanco anteriores nunca salen en gris.
+
+### Hoy
+- **Aviso de días pendientes:** "Ayer quedó abierto. Ciérralo en 10 segundos." o "Tienes N días sin cerrar.", con botón "Cerrar".
+- **Hoja "Días pendientes":** lista de días sin cerrar, cada uno con su botón "Cerrar", y "Marcar como completos los que tienen alimentos" para cerrar de una vez los que tienen registros. Los días vacíos piden elegir uno a uno.
+- **Tarjeta "Cierre del día":** al final de Hoy. Para el día de hoy aparece a partir de la hora configurada (antes, un botón discreto "Cerrar el día"). Un día pasado abierto la muestra arriba con el aviso gris "Este día sigue abierto: no cuenta en tus promedios hasta que lo cierres." Un día cerrado muestra su estado ("Cerrado: completo", "Cerrado: fuera de plan · alcohol") con el botón "Cambiar". Los días futuros no se cierran.
+- **Colores:** un día abierto se ve en gris neutro y sin semáforo, con el texto "Día sin cerrar". Un día marcado usa un color neutro suave, nunca rojo. Un día completo conserva el semáforo.
+- Añadir alimentos a un día ya cerrado no lo reabre: cerrar es decisión de la persona.
+
+### Hoja "Cerrar el día"
+1. "¿Tu registro de ayer / ese día / hoy refleja lo que comiste?": **Sí, está completo** (cierra al instante), **Más o menos, me faltó algo** o **Fue un día fuera de plan**. Si el día no tiene alimentos, ofrece marcarlo como día de ayuno.
+2. "¿Qué pasó?": fichas de selección múltiple (comí de más, tomé alcohol, celebración o evento, comí fuera y no pude registrar, se me olvidó registrar, viaje, comí muy poco, otro). "Sin juicios. Esto solo ayuda a que el día cuente."
+3. "¿Qué hacemos con este día?": **Marcar y seguir** (queda registrado, fuera de promedios) o **Completar el registro** (vuelve al día, que sigue abierto, para añadir lo que faltó). La lista de opciones está preparada para que la V1.5 añada "Estimar".
+4. Cierre: "Listo. Mañana empieza en limpio." con el botón **Planear mañana**.
+
+### Resumen
+- **Semáforo semanal y barras diarias:** día sin cerrar en gris ("Día sin cerrar"), día marcado en un tono neutro distinto ("Marcado, no cuenta en promedios"); el ayuno sigue con la "A". La leyenda añade "Sin cerrar" y "Marcado" cuando aparecen.
+- **Constancia:** "Registraste 26 de 30 días (3 marcados como fuera de plan)", y "N días sin cerrar" con enlace a Días pendientes.
+- **Medias y progreso:** línea de cobertura (regla 6) y progreso en 0 cuando se supera el límite (regla 5).
+- **Resumen > Día** de un día abierto: aviso gris y botón "Cerrar el día".
+- Una semana o un mes sin días que cuenten, pero con días pendientes, lo explica y ofrece cerrarlos.
+
+### Ajustes
+- Nueva sección **Cierre del día**: "Preguntarme al final del día" y la hora (por defecto 20:00). Aunque se desactive la pregunta, los días sin cerrar siguen en gris: la regla se mantiene.
+- Nota final: "Utilizando Version 1.4 de la app".
+
+### Datos y copias de seguridad
+- Formato v4. Campos nuevos, todos opcionales: `settings.closeFrom`, `settings.closeHour`, `settings.closeAsk` y `day.close = {s, why, mode, at, legacy}` (`s`: ok, partial, off; `est` queda reservado para la V1.5).
+- `dayState()` es el único sitio que decide qué día cuenta (future, today, open, ok, marked, fast); `dayTotals()` añade `state`, `counts` y `registered`.
+- `cleanDay()` no borra un día cerrado aunque esté vacío. "Copiar de ayer" y "Copiar de otro día" no copian el cierre.
+- Exportar e importar incluyen los cierres y `closeFrom`. Las copias v1 a v3 se siguen recuperando y se migran como en el punto 7.
+- `sw.js`: nueva versión de caché.
+
+### Para tener en cuenta
+- Desde el día en que se instala la 1.4, todo día que pase sin cerrarse queda en gris, también los días en que no se abrió la app. Por eso conviene cerrar cada noche o usar "Días pendientes".
+- "Constancia" cuenta los días transcurridos del periodo completo, como en la 1.3, para no mostrar cifras como "25 de 1" en el mes en que empieza la regla.
+- Un día cerrado como completo sin alimentos no entra en promedios (no hay nada que contar). Si ese día no comiste nada, márcalo como día de ayuno.
+- Al recuperar una copia v1 a v3, la regla empieza el día en que se recupera.
+
+---
+
 ## Versión 1.3
 
 ### Hoy

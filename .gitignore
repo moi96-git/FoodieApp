@@ -1,0 +1,26 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Editores / IDE
+.vscode/
+.idea/
+*.swp
+*~
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Entorno y secretos
+.env
+.env.*
+
+# Logs y temporales
+*.log
+*.tmp
+.claude/settings.local.json
