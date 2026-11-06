@@ -1,5 +1,25 @@
 # Hoja: historial de versiones
 
+## Versión 1.8 · Base de alimentos latinoamericana e internacional
+
+Objetivo: que la base sirva para lo que se come en Colombia, México y el resto de Latinoamérica, y para la comida rápida y las cocinas que se encuentran en cualquier ciudad. Cada alimento se encuentra por los nombres que usa cada país.
+
+### Base de datos (`data/alimentos.csv`)
+- **De 1.077 a 3.968 filas** (unos 2.200 alimentos distintos). Los 1.077 `id` anteriores se conservan con los mismos valores, así que los registros, las comidas guardadas y los frecuentes no cambian.
+- **Otros nombres como filas propias:** cada nombre regional es una fila con los mismos valores (Papas fritas, Patatas fritas, Papas a la francesa; Frijoles, Fríjoles, Caraotas, Porotos; Banano, Cambur, Guineo…). Así quien busca "papas fritas" ve "Papas fritas" y no un nombre que no reconoce. Se quitaron los sinónimos que el buscador ya encontraba con otro nombre del mismo alimento (por ejemplo, "Frijol rojo cocido", que aparece al buscar "Frijoles rojos cocidos").
+- **Alimentos cocinados:** arroz, pasta, granos, legumbres, verduras, papa, yuca, plátano, carnes, aves, pescados y huevos, con sus valores ya cocinados (hervido, a la plancha, frito, al horno…). Las carnes, aves y pescados frescos que ya estaban ahora dicen "(en crudo)" para no confundirlos.
+- **Categorías nuevas:** Sopas y cremas; Comida rápida; Arepas, empanadas y fritos; Jugos y bebidas preparadas. Platos preparados pasa de 1 a casi 600 filas.
+- **Colombia:** bandeja paisa, ajiaco, sancocho, frijoles, arepas, empanadas, buñuelos, pandebono, patacón, tamal, lechona, quesos, jugos en agua y en leche, aguapanela, dulces y postres.
+- **México y otros países:** tacos, burritos, quesadillas, enchiladas, chilaquiles, pozole, tamales; ceviche, lomo saltado, pabellón, empanadas argentinas, feijoada, pupusas y más.
+- **Comida rápida y cocinas del mundo:** hamburguesas, pizzas, perros calientes, nuggets, alitas; productos insignia de McDonald's, Burger King, KFC, Subway, Domino's, Taco Bell y Starbucks; sushi, ramen, comida china, tailandesa, india, árabe, italiana y española.
+- **Porciones:** casi todos los platos tienen unidades (1 empanada, 1 hamburguesa, 1 porción de pizza, 1 plato, 1 vaso…).
+- **Columna `origen`:** `est` para valores estimados a partir de una receta típica y `cadena` para información publicada por una cadena. Se mantienen `es` y el vacío (USDA).
+
+### Cambios en la app
+- La ficha de un alimento de la base indica su origen: tablas de referencia (USDA), etiqueta típica en España, receta típica o información de la cadena. Antes decía "en crudo" para todo lo que no venía de España, aunque fuera un plato.
+- La categoría Jugos y bebidas preparadas se muestra en ml, como Bebidas.
+- La pestaña Base de Alimentos describe las nuevas fuentes.
+
 ## Versión 1.7 · Base de alimentos en un archivo CSV
 
 Objetivo: separar los alimentos del código. La base ya no es una línea de `index.html`, y cada cambio en los datos llega a quien tiene la app instalada, sin publicar una versión nueva.

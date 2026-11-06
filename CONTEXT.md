@@ -3,13 +3,13 @@
 Léelo primero. Resume lo necesario para trabajar sin releer todo el código. El detalle de cada versión está en `version.md`; las reglas de trabajo, en `claude.md`.
 
 ## Qué es
-PWA de registro de comidas, calorías y macros, en español y pensada para iPhone. Sin servidor ni cuentas: los datos viven en el `localStorage` de cada dispositivo. Se publica con GitHub Pages desde `main` (raíz). Versión actual: **1.7**. La carpeta se llama FoodieApp, pero la app se llama **Hoja**.
+PWA de registro de comidas, calorías y macros, en español y pensada para iPhone. Sin servidor ni cuentas: los datos viven en el `localStorage` de cada dispositivo. Se publica con GitHub Pages desde `main` (raíz). Versión actual: **1.8**. La carpeta se llama FoodieApp, pero la app se llama **Hoja**.
 
 ## Archivos
 | Archivo | Función |
 |---|---|
 | `index.html` | Toda la app: CSS, HTML y JS en un archivo (unas 2.700 líneas) |
-| `data/alimentos.csv` | Base de alimentos: 1.077 filas, una por alimento |
+| `data/alimentos.csv` | Base de alimentos: 3.968 filas (unos 2.200 alimentos; los sinónimos son filas propias) |
 | `sw.js` | Service worker para uso sin conexión |
 | `version.md` | Historial, de la versión más reciente a la más antigua |
 | `claude.md` | Reglas del proyecto |
@@ -59,7 +59,13 @@ PWA de registro de comidas, calorías y macros, en español y pensada para iPhon
 - Tono del cierre del día: sin culpa, sin rojo y sin palabras como "fallaste" o "compensa".
 
 ## Base de alimentos (`data/alimentos.csv`)
-- Columnas: `id;nombre;categoria;kcal;proteina;carbohidratos;grasa;unidades;origen`. Valores por 100 g. `unidades` = `1 huevo M:50|1 huevo L:58`. `origen` = `es` para valores típicos de España (`f.src`), vacío para USDA. Las columnas extra se ignoran.
+- Columnas: `id;nombre;categoria;kcal;proteina;carbohidratos;grasa;unidades;origen`. Valores por 100 g. `unidades` = `1 huevo M:50|1 huevo L:58`. Las columnas extra se ignoran.
+- `origen` pasa a `f.src` y su texto sale de `BASE_SRC`: vacío = USDA (`f.src = 'base'`), `es` = etiqueta típica en España, `est` = estimado a partir de una receta típica (platos, sopas, jugos, fritos), `cadena` = información publicada por una cadena. Un valor desconocido se trata como vacío. Para añadir uno nuevo, añádelo a `BASE_SRC` (sube versión).
+- **Sinónimos = filas propias** con los mismos valores (decisión de la 1.8: el usuario debe ver el nombre que escribió). No se añade un sinónimo si cada una de sus palabras ya está dentro de alguna palabra de otro nombre del mismo alimento, porque el buscador (subcadenas) ya lo encuentra.
+- **Ids:** `u…` USDA, `e…` España, `n0001`–`n2891` añadidos en la 1.8. Los nuevos siguen la serie `n` (siguiente: `n2892`).
+- Carnes, aves y pescados frescos llevan "(en crudo)" en el nombre; las versiones cocinadas son filas aparte. Al añadir un alimento cocinado, usa valores de la forma cocinada, no los del crudo.
+- 23 categorías. Nuevas en la 1.8: `Sopas y cremas`, `Comida rápida`, `Arepas, empanadas y fritos`, `Jugos y bebidas preparadas`. `baseLiquid()` trata como líquidos `Bebidas` y `Jugos y bebidas preparadas`, además de los nombres que empiezan por jugo, zumo, leche, caldo…
+- Comprobación rápida de calorías: kcal ≈ 4·P + 4·C + 9·G. Las legumbres y otros alimentos con mucha fibra dan más (los carbohidratos excluyen la fibra) y las bebidas alcohólicas también (7 kcal por g de alcohol).
 - **Editar el CSV no sube la versión ni cambia `CACHE`:** los cambios de datos llegan solos. La regla de versiones aplica a `index.html`.
 - **No cambies un `id`:** `S.usage`, los registros y las comidas se enlazan con él. `liq` no está en el CSV: lo calcula `baseLiquid()` en `applyBase()`.
 - `BASE`, `BASE_MAP` y `CATS` son `let`: empiezan vacíos y solo los cambia `applyBase()`. El código que use la base debe tolerar `BASE = []`, y `getFood()` puede devolver `null`.

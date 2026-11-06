@@ -393,8 +393,8 @@ select.input{background-image:linear-gradient(45deg,transparent 50%,var(--ink-3)
 
 <script>
 'use strict';
-const BUILD = '202611061800';
-const VERSION = '1.7';
+const BUILD = '202611061930';
+const VERSION = '1.8';
 const KCAL_PER_KG = 7700; // kcal por kg de peso corporal (el tejido que se pierde no es grasa pura)
 const LATE_MIN = 21 * 60; // a partir de las 21:00 se considera cena tardía
 
@@ -550,7 +550,7 @@ if (navigator.storage && navigator.storage.persist) navigator.storage.persist().
 function baseLiquid(f) {
   const n = norm(f.n);
   if (/polvo/.test(n)) return false;
-  if (f.c === 'Bebidas') return true;
+  if (f.c === 'Bebidas' || f.c === 'Jugos y bebidas preparadas') return true;
   if (/^jugo/.test(n)) return !/en su jugo/.test(n);
   return /^(leche|zumo|bebida de|caldo|aceite|agua de coco)/.test(n);
 }
@@ -559,6 +559,8 @@ function baseLiquid(f) {
 const BASE_URL = 'data/alimentos.csv', BASE_CACHE = 'hoja-datos'; // BASE_CACHE: sw.js no debe borrarla ni interceptar BASE_URL
 const BASE_MIN = 100, BASE_KEEP = 0.7, BASE_CHECK_MS = 15 * 60000, BASE_TIMEOUT = 20000;
 const BASE_COLS = ['id', 'nombre', 'categoria', 'kcal', 'proteina', 'carbohidratos', 'grasa', 'unidades', 'origen'];
+/* Valores de la columna origen. Vacío = tablas de referencia (USDA). Cualquier otro valor se trata como vacío. */
+const BASE_SRC = {es: ', típicos de etiqueta en España', est: ', estimados a partir de una receta típica', cadena: ', según la información publicada por la cadena (aproximados)', base: ', de tablas de referencia (USDA)'};
 let BASE = [], BASE_MAP = new Map(), CATS = [];
 let baseText = '', baseDate = '', baseError = '', baseFailed = false, baseChecked = 0, baseBusy = false;
 function csvRows(text) { // CSV estándar, con comillas. Acepta ; o , (Excel y Google Sheets exportan distinto)
@@ -664,7 +666,7 @@ function procTags(f) { // Nutri-Score y NOVA (Open Food Facts o indicados a mano
 function getFood(fid) {
   if (!fid) return null;
   if (S.foods[fid]) return toFood(S.foods[fid], fid, S.foods[fid].src || 'user');
-  const b = BASE_MAP.get(fid); return b ? toFood(b, fid, b.src === 'es' ? 'es' : 'base') : null;
+  const b = BASE_MAP.get(fid); return b ? toFood(b, fid, b.src && b.src !== 'base' && BASE_SRC[b.src] ? b.src : 'base') : null;
 }
 function isLiq(x) { // x: alimento, entrada o elemento de comida. Las entradas guardan su copia; las antiguas consultan el alimento
   if (!x) return false;
@@ -2403,9 +2405,9 @@ function foodsList() {
       ? `<ul class="rlist" style="margin-top:12px">${rs.map(r => { const t = recipeTotals(r); return `<li class="ritem" data-a="editRecipe" data-id="${r.id}"><div class="rmain"><span class="rname">${esc(r.name)}</span><span class="rsub">${r.items.length} alimentos, ${fInt(t.k)} kcal, P ${fG(t.p)} C ${fG(t.c)} G ${fG(t.f)}</span></div></li>`; }).join('')}</ul>`
       : `<div class="empty"><b>${q ? 'Sin coincidencias' : 'Aún no tienes comidas guardadas'}</b>${q ? '' : 'Crea una aquí o guarda una comida del día desde su menú.'}</div>`);
   } else {
-    const items = q ? search(q, 80).filter(f => f.src === 'base' || f.src === 'es') : [];
+    const items = q ? search(q, 80).filter(f => !!BASE_SRC[f.src]) : [];
     list = q ? (items.length ? `<ul class="rlist">${items.map(f => `<li class="ritem" data-a="viewBase" data-fid="${esc(f.fid)}"><div class="rmain"><span class="rname">${esc(f.n)}</span><span class="rsub">${esc(f.c)}, ${per100Text(f)}</span></div></li>`).join('')}</ul>` : `<div class="empty"><b>Sin coincidencias</b>Prueba con otra palabra.</div>`)
-      : !BASE.length ? `<div class="empty"><b>Base no disponible</b>${esc(baseStatus())}</div>` : `<div class="card"><p style="margin:0">La base incluye <b>${fInt(BASE.length)}</b> alimentos comunes con valores por 100 g en crudo. Busca uno para ver su información.</p><p class="hint">Fuente principal: USDA, base de datos de referencia SR28 (dominio público). Los carbohidratos excluyen la fibra, como en las etiquetas europeas.</p></div>
+      : !BASE.length ? `<div class="empty"><b>Base no disponible</b>${esc(baseStatus())}</div>` : `<div class="card"><p style="margin:0">La base incluye <b>${fInt(BASE.length)}</b> alimentos con valores por 100 g: ingredientes crudos y cocinados, platos, comida rápida y bebidas. Busca uno para ver su información.</p><p class="hint">Fuentes: USDA, base de datos de referencia SR28 (dominio público), para ingredientes crudos y cocinados; valores típicos de etiqueta en España; estimaciones a partir de recetas típicas para platos y bebidas preparadas, e información publicada por las cadenas de comida rápida. Cada ficha indica su origen. Los carbohidratos excluyen la fibra, como en las etiquetas europeas.</p></div>
         <div class="listtitle">Categorías</div><div class="pillrow">${CATS.map(c => `<button class="pill" data-a="foodCat" data-c="${esc(c)}">${esc(c)}</button>`).join('')}</div>`;
   }
   return list;
@@ -2422,7 +2424,7 @@ function renderFoods() {
 function openBaseFood(fid) {
   const f = getFood(fid); if (!f) return; // la base pudo actualizarse mientras se veía la lista
   openSheet(f.n, body => {
-    body.innerHTML = `<p class="per100" style="margin-top:0">${esc(f.c)}. Valores por 100 ${qUnit(f)}${f.src === 'es' ? ', típicos de etiqueta en España' : ', en crudo'}.</p>
+    body.innerHTML = `<p class="per100" style="margin-top:0">${esc(f.c)}. Valores por 100 ${qUnit(f)}${BASE_SRC[f.src] || ''}.</p>
       <div class="preview"><div><b>${fInt(f.k)}</b><span>kcal</span></div><div><b>${fG(f.p)}</b><span><i class="sw sw-p"></i>Prot.</span></div><div><b>${fG(f.h)}</b><span><i class="sw sw-c"></i>Carb.</span></div><div><b>${fG(f.g)}</b><span><i class="sw sw-f"></i>Grasa</span></div></div>
       ${f.u.length ? `<p class="hint">Unidades: ${f.u.map(u => `${esc(u[0])} = ${fG(u[1])} ${qUnit(f)}`).join('; ')}</p>` : ''}
       <div class="btnrow"><button class="btn" data-s="copy">Copiar a mis alimentos</button><button class="btn primary" data-s="add">Añadir a hoy</button></div>`;
