@@ -1,5 +1,64 @@
 # Hoja: historial de versiones
 
+## Versión 1.6 · Hábitos y mejoras de uso
+
+Objetivo: que registrar y corregir cueste menos toques, que la pantalla de Hoy muestre solo lo que cada persona usa y que los días fuera de plan enseñen algo sin juzgar.
+
+### A. Agua y ayuno, a elección
+- **Quitar agua:** vuelve el botón −250. Orden: −250, +250, +500, ml. No baja de 0. A 375 px los botones pasan juntos a una segunda línea, sin cortarse, y la barra sigue siendo delgada.
+- **Ajustes > Pantalla de Hoy:** casillas "Mostrar el registro de agua" (activada por defecto) y "Mostrar el botón de día de ayuno" (desactivada por defecto).
+- Ocultarlos no borra nada. Un día ya marcado como ayuno siempre muestra su tarjeta, para poder quitarlo.
+
+### B. Fecha del encabezado de Hoy
+- `headerTitle(k)` decide el encabezado; `dayName` no cambia porque también lo usan el menú de comida y Resumen > Día.
+- Hoy, Ayer y Mañana, y cualquier día de la semana en curso: nombre grande y fecha pequeña debajo.
+- Fuera de la semana en curso: la fecha en grande ("16 oct", o "16 oct 2025" si es de otro año), sin línea pequeña. La altura del encabezado no cambia al navegar.
+
+### C. Deslizar para eliminar
+- En las filas de Hoy (alimentos y macros directos), deslizar a la izquierda revela "Eliminar". Pasado el 40 % del ancho, o al tocar el botón, se elimina.
+- **Deshacer:** el toast "Eliminado" devuelve la entrada a su comida y posición, con su marca "En casa" y el cierre del día tal como estaban.
+- **Gesto:** `swipeable()` amplía sus opciones (`item`, `part`, `reveal`, `skip`) y funciona por delegación sobre `.entries`. Una sola fila abierta a la vez; tocar fuera la cierra sin activar lo que se tocó; deslizar no abre la edición; `touch-action: pan-y` mantiene el scroll; respeta `prefers-reduced-motion`.
+- **Bordes:** el gesto no empieza a menos de 20 px del borde izquierdo ni del derecho, donde están los gestos de atrás y adelante de Safari.
+- **Sin gestos:** Supr o Retroceso sobre la fila enfocada. "Eliminar" sigue en la hoja de edición y ahora también permite deshacer.
+- **Todas las vías de borrado** pasan por `deleteEntry()`, salvo "Vaciar" y los "Deshacer" de añadir, que usan el aviso de `cleanDay()`. Si un día estimado se queda sin alimentos, pasa a marcado y el toast lo avisa. Deshacer recupera la estimación.
+
+### D. Líquidos en ml
+- Los alimentos líquidos muestran su cantidad en ml, con equivalencia 1:1 y sin convertir densidades. Los macros siguen en gramos, y el líquido no suma a la meta de agua.
+- **Datos:** campo opcional `liq` en alimentos. La cantidad sigue en `e.q`.
+- **Historial:** cada entrada nueva con alimento copia `e.liq` (1 o 0), para que su unidad no cambie si luego se edita el alimento. Se guarda también el 0, porque con solo el 1 un sólido pasaría a ml al marcar el alimento como líquido. Las entradas antiguas, sin el campo, consultan el alimento.
+- **Base:** regla `baseLiquid()`: categoría Bebidas; nombres que empiezan por Leche, Zumo, Jugo, Bebida de, Caldo, Aceite y Agua de coco; sin Dulce de leche, sin "en su jugo" y sin productos en polvo. Son 93 de 1.077: Bebidas 49, Aceites 14, Lácteos 10, Frutas 10, Caldos 4, Bebidas de soja 3, y Leche y agua de coco 3.
+- **Open Food Facts:** `offLiquid()`: líquido si la cantidad viene en ml, cl, dl o l, o si es de categoría bebidas y no viene en g o kg ni es en polvo o instantánea.
+- **Alimentos propios:** casilla "Es líquido" en el editor; sus textos cambian al marcarla. "Copiar a mis alimentos" la conserva.
+- **Textos:** lista de comidas, hoja de cantidad, búsquedas y listas, ficha de la base, editor de alimentos, editor de comidas guardadas y hojas de copiar.
+
+### E. Días fuera de plan
+- Tarjeta nueva en Resumen > Mes y > Historial (últimas 12 semanas), y en Semana cuando ese periodo tiene algún día fuera de plan. También aparece si el periodo no tiene días que cuenten.
+- Cuenta los días marcados o estimados, cerrados como "me faltó algo" o "fuera de plan", y con causa.
+- En orden: volver al día siguiente, cuántos días (estimados y marcados), hasta 3 causas, fin de semana, y kcal extra promedio en días estimados.
+- Con menos de 3 días: "Con unos días más de cierre verás patrones aquí."
+
+### F. Hora al registrar
+- `timeControl()` entra en la hoja de cantidad y en macros directos: hora nativa, −15, +15, "Ahora" y "Quitar hora".
+- **Hora del toque:** si no se toca el control, se guarda la hora de pulsar "Añadir", no la de abrir la hoja.
+- Corregido: una hora escrita a mano se perdía al cambiar la cantidad con las fichas o los botones.
+- Solo se pone hora automática en el día de hoy; ni en días pasados ni en futuros.
+- **Toast:** al añadir muestra la hora y "Cambiar hora", y ahora también "Deshacer". `toast()` acepta varias acciones. Vale para añadir desde la hoja, añadir rápido, varios alimentos, comidas guardadas y macros directos.
+
+### Datos y publicación
+- Sigue el formato v4. Campos nuevos, todos opcionales: `settings.homeWater`, `settings.homeFast`, `food.liq`, `e.liq` y `item.liq` en comidas guardadas. Las copias de la 1.5 se importan sin problema.
+- `sw.js`: nueva versión de caché.
+
+### Para tener en cuenta
+- **Ayuno:** al actualizar, la tarjeta deja de verse en Hoy hasta activarla en Ajustes. Marcar ayuno al cerrar un día sigue disponible.
+- **ml y g no son lo mismo:** la equivalencia 1:1 es deliberada. 100 ml de aceite pesan unos 92 g, pero la app los cuenta como 100 g, igual que antes.
+- **Aceite de coco y aceite de palma** cuentan como líquidos por la regla, aunque suelen estar semisólidos a temperatura ambiente.
+- **No son líquidos por la regla:** nata, kéfir, salsas, vinagres, siropes y miel siguen en g.
+- **Productos de Open Food Facts ya guardados** no tienen `liq` y siguen en g; se puede marcar "Es líquido" al editarlos.
+- **Copias de comida:** "Copiar de ayer" y "Copiar de otro día" conservan la hora original.
+- **Falta probar en iPhone:** el gesto se probó con eventos simulados en Chrome, no con el dedo ni con el retroceso real de Safari.
+
+---
+
 ## Versión 1.5 · Estimar y contrastar con la báscula
 
 Objetivo: que lo más fácil al cerrar un día incompleto o fuera de plan sea estimar cuánto fue, en 2 o 3 toques y sin culpa, y que el impacto de los días que no cuentan sea explícito.
