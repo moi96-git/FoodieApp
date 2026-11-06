@@ -16,7 +16,8 @@ Los datos viven en el almacenamiento del navegador de cada teléfono. En **Ajust
 
 | Archivo | Para qué sirve |
 |---|---|
-| `index.html` | La app completa, con la base de 1.077 alimentos incluida |
+| `index.html` | La app completa |
+| `data/alimentos.csv` | Base de 1.077 alimentos |
 | `manifest.webmanifest` | Nombre e iconos al instalarla |
 | `sw.js` | Permite usarla sin conexión |
 | `icons/` | Icono de la hoja verde (iPhone y Android) |
@@ -27,6 +28,17 @@ Los datos viven en el almacenamiento del navegador de cada teléfono. En **Ajust
 - **USDA National Nutrient Database for Standard Reference, SR28** (dominio público): 1.059 alimentos con valores por 100 g en crudo, traducidos al español. Los carbohidratos se muestran sin fibra, como en las etiquetas europeas.
 - **Valores típicos de etiqueta en España** (aproximados): 18 productos como jamón serrano, queso manchego o bebida de avena.
 - **[Open Food Facts](https://world.openfoodfacts.org)** (licencia ODbL): productos envasados por código de barras o búsqueda. Cada producto que añades queda guardado en *Mis alimentos* y luego funciona sin conexión.
+
+## Editar la base de alimentos
+
+Edita `data/alimentos.csv` y haz push. Quien tenga la app instalada recibe el cambio la siguiente vez que la abra con conexión, normalmente en unos minutos y sin publicar una versión nueva.
+
+- Guarda el archivo en UTF-8 y no cambies el `id` de un alimento existente. Los alimentos nuevos necesitan un `id` que no exista.
+- Los valores son por 100 g. Las unidades se escriben así: `1 huevo M:50|1 huevo L:58`.
+- Un archivo con errores se ignora y la app sigue con la copia anterior. **Ajustes** muestra la fila y el motivo.
+- Los registros pasados conservan sus valores.
+
+Para probar en local usa `python3 -m http.server`: abrir `index.html` con doble clic no carga la base.
 
 ## Actualizar la app
 

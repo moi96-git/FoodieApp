@@ -1,5 +1,33 @@
 # Hoja: historial de versiones
 
+## Versión 1.7 · Base de alimentos en un archivo CSV
+
+Objetivo: separar los alimentos del código. La base ya no es una línea de `index.html`, y cada cambio en los datos llega a quien tiene la app instalada, sin publicar una versión nueva.
+
+### Base de datos
+- **Archivo nuevo `data/alimentos.csv`:** los 1.077 alimentos, uno por fila y en UTF-8. Columnas: `id`, `nombre`, `categoria`, `kcal`, `proteina`, `carbohidratos`, `grasa`, `unidades`, `origen`.
+- **Unidades:** van en una sola columna, con el formato `1 huevo M:50|1 huevo L:58`.
+- **`index.html`** baja de 322 KB a 209 KB. La regla de líquidos y las categorías se calculan al cargar los datos, igual que antes.
+
+### Cómo se actualiza
+- La app abre al instante con la copia guardada en el teléfono y consulta el CSV en segundo plano, al abrir y al volver a la app tras 15 minutos o más.
+- Si el archivo no cambió, el servidor responde sin volver a enviarlo. Si cambió y es válido, se guarda y el buscador y las listas se actualizan sin recargar.
+- La actualización no interrumpe: con una hoja abierta o escribiendo, la pantalla no se repinta.
+- Sin conexión se usa la última copia. La copia vive en su propia caché (`hoja-datos`), que sobrevive a las versiones nuevas de la app.
+- **Editar el CSV no sube la versión de la app.**
+
+### Validación
+- Un archivo con errores se rechaza entero y se sigue con la copia buena: columnas que faltan, ids repetidos o vacíos, números fuera de rango, unidades mal escritas, comillas sin cerrar, codificación distinta de UTF-8, menos de 100 alimentos o una caída de más del 30 % respecto a la copia anterior.
+- **Ajustes** muestra cuántos alimentos tiene la base y su fecha. Si la última actualización se rechazó, indica la fila y el motivo.
+- Se aceptan los CSV de Excel y Google Sheets: separador `;` o `,`, decimal con punto o coma, BOM, saltos de línea de Windows, comillas, filas vacías y columnas extra.
+
+### Datos del usuario
+- Los alimentos propios, los registros, las comidas guardadas y las copias de seguridad no cambian de formato.
+- Un alimento del usuario tiene prioridad sobre uno de la base con el mismo id, y ahora aparece una sola vez en el buscador.
+- Corregir o quitar un alimento del CSV no altera los registros pasados, porque cada uno guarda su propia copia de los valores.
+- Si la base no se puede descargar la primera vez, la app funciona con los datos del usuario, lo avisa y reintenta sola al volver la conexión.
+- El editor de alimentos conserva la categoría de un alimento propio aunque ya no exista en la base.
+
 ## Versión 1.6 · Hábitos y mejoras de uso
 
 Objetivo: que registrar y corregir cueste menos toques, que la pantalla de Hoy muestre solo lo que cada persona usa y que los días fuera de plan enseñen algo sin juzgar.

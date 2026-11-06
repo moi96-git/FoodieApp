@@ -3,12 +3,13 @@
 Léelo primero. Resume lo necesario para trabajar sin releer todo el código. El detalle de cada versión está en `version.md`; las reglas de trabajo, en `claude.md`.
 
 ## Qué es
-PWA de registro de comidas, calorías y macros, en español y pensada para iPhone. Sin servidor ni cuentas: los datos viven en el `localStorage` de cada dispositivo. Se publica con GitHub Pages desde `main` (raíz). Versión actual: **1.6**. La carpeta se llama FoodieApp, pero la app se llama **Hoja**.
+PWA de registro de comidas, calorías y macros, en español y pensada para iPhone. Sin servidor ni cuentas: los datos viven en el `localStorage` de cada dispositivo. Se publica con GitHub Pages desde `main` (raíz). Versión actual: **1.7**. La carpeta se llama FoodieApp, pero la app se llama **Hoja**.
 
 ## Archivos
 | Archivo | Función |
 |---|---|
-| `index.html` | Toda la app: CSS, HTML y JS en un archivo (unas 2.400 líneas) |
+| `index.html` | Toda la app: CSS, HTML y JS en un archivo (unas 2.700 líneas) |
+| `data/alimentos.csv` | Base de alimentos: 1.077 filas, una por alimento |
 | `sw.js` | Service worker para uso sin conexión |
 | `version.md` | Historial, de la versión más reciente a la más antigua |
 | `claude.md` | Reglas del proyecto |
@@ -16,7 +17,7 @@ PWA de registro de comidas, calorías y macros, en español y pensada para iPhon
 | `vendor/zxing.min.js` | Lector de códigos de barras |
 
 ## Leer index.html sin gastar tokens
-- La línea `const BASE = [...]` (hacia la 360) ocupa unos 120 KB. Nunca la leas ni dejes que aparezca entera: usa `Read` con `offset` y `limit`, y en `grep` añade `| cut -c1-150`.
+- La base ya no está en `index.html`: está en `data/alimentos.csv`. Búscala con `grep -n "^u01123;" data/alimentos.csv`, sin leer el archivo entero.
 - Localiza el código con `grep -n "^function \|^/\* -----" index.html | cut -c1-100`. Las secciones están marcadas con `/* ---------- nombre ---------- */`.
 - Orden del script: utilidades, fechas, estado, alimentos, días y objetivos, TDEE, navegación, Hoy, cierre del día, registrar, hojas, toast, buscador, cantidad, macros directos, editor de alimentos, Open Food Facts, escáner, recetas, acciones de comida, Resumen, Alimentos, Ajustes, copias de seguridad, `ACT`, inicio.
 
@@ -57,12 +58,24 @@ PWA de registro de comidas, calorías y macros, en español y pensada para iPhon
 - El ayuno se muestra en Hoy solo si está activado en Ajustes o si el día ya es de ayuno.
 - Tono del cierre del día: sin culpa, sin rojo y sin palabras como "fallaste" o "compensa".
 
+## Base de alimentos (`data/alimentos.csv`)
+- Columnas: `id;nombre;categoria;kcal;proteina;carbohidratos;grasa;unidades;origen`. Valores por 100 g. `unidades` = `1 huevo M:50|1 huevo L:58`. `origen` = `es` para valores típicos de España (`f.src`), vacío para USDA. Las columnas extra se ignoran.
+- **Editar el CSV no sube la versión ni cambia `CACHE`:** los cambios de datos llegan solos. La regla de versiones aplica a `index.html`.
+- **No cambies un `id`:** `S.usage`, los registros y las comidas se enlazan con él. `liq` no está en el CSV: lo calcula `baseLiquid()` en `applyBase()`.
+- `BASE`, `BASE_MAP` y `CATS` son `let`: empiezan vacíos y solo los cambia `applyBase()`. El código que use la base debe tolerar `BASE = []`, y `getFood()` puede devolver `null`.
+- **Flujo:** `loadLocalBase()` lee la caché `hoja-datos`; luego `render()`, y después `refreshBase()` consulta la red con `cache: 'no-cache'` (respeta ETag). Se repite al volver a primer plano si pasaron `BASE_CHECK_MS`, o siempre que no haya base. `repaintBase()` no repinta con hojas abiertas ni con un campo enfocado.
+- `parseBase(text, prevCount)` valida y lanza un error con la fila. El error queda en `baseError` y se muestra en Ajustes. Reducir la base más de un 30 % (`BASE_KEEP`) se rechaza: para hacerlo a propósito, baja el umbral en una versión.
+- `sw.js` no intercepta el CSV ni borra `hoja-datos`. `BASE_CACHE` y la ruta del CSV deben coincidir en ambos archivos.
+- GitHub Pages sirve con caché de hasta 10 minutos. En la transición desde la 1.6, el SW viejo sirve el CSV desde su caché hasta el relevo, que ocurre al abrir con conexión.
+
 ## Pruebas
 - No hay Node. Para JS usa `/System/Library/Frameworks/JavaScriptCore.framework/Versions/Current/Helpers/jsc`, con el script extraído de `index.html` y stubs de `document`, `localStorage`, etc. Comenta `render();` y el registro del service worker.
 - Comparar con la versión anterior: `git show HEAD:index.html`, el mismo conjunto de datos en ambas y diff de `periodStats`.
-- Chrome: usa `--headless=old --no-sandbox --user-data-dir=<dir> --virtual-time-budget=5000` (`--headless=new` se cuelga). El primer arranque de un perfil suele colgarse: lanza con timeout de 15 s y reintenta sin borrar `--user-data-dir`. No baja de 500 px de ventana: para 375 px, fuerza por CSS `html,body` y `.sheet-wrap,.tabbar` a 375 px, y desactiva la transición de `.sheet` para las capturas. Los iframes con `file://` se cuelgan.
+- Chrome 155: `--headless=old` ya no existe. Usa `--headless=new --no-sandbox --user-data-dir=<dir> --remote-debugging-port=<puerto>` y controla la página por CDP con `websockets` (en un venv del scratchpad). Para 375 px: `Emulation.setDeviceMetricsOverride`.
+- Para probar SW y actualizaciones usa un servidor propio que imite GitHub Pages (`ETag`, `Cache-Control: max-age=600`) y pueda cambiar archivos o cortar la conexión. Tras simular un push, ejecuta `Network.clearBrowserCache` y **comprueba que `VERSION` cambió**: con la caché de 10 minutos la primera apertura sigue en la versión anterior y la prueba compararía una versión consigo misma. `index.html` no funciona desde `file://` sin base: usa `python3 -m http.server`.
 - Las pruebas no están en el repositorio; se crean en el scratchpad de cada sesión.
 
 ## Pendiente
 - Probar en iPhone la apertura sin conexión de `sw.js`: el arreglo de la 1.2 nunca se verificó en un teléfono, ni los deslizamientos táctiles de la 1.5 y la 1.6.
+- Probar en iPhone la actualización de la base desde `data/alimentos.csv`, incluido el paso real de la 1.6 a la 1.7.
 - Sin decidir: hoy cuenta en las medias aunque esté a medias, lo que las baja por la mañana e infla el progreso.

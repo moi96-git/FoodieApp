@@ -1,5 +1,6 @@
 // Hoja: funciona sin conexión. Los datos del usuario NO pasan por aquí (están en el almacenamiento del navegador).
-const CACHE = 'hoja-202611061600';
+const CACHE = 'hoja-202611061800';
+const BASE_CACHE = 'hoja-datos'; // base de alimentos: la gestiona index.html y sobrevive a cada versión
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icons/apple-touch-icon.png', './icons/icon-192.png', './icons/icon-512.png', './vendor/zxing.min.js'];
 const NET_TIMEOUT = 3500; // con mala cobertura la red puede tardar muchísimo en fallar; pasado este tiempo se usa la copia guardada
 
@@ -16,7 +17,7 @@ async function precache() {
 }
 self.addEventListener('install', e => { e.waitUntil(precache().then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE && k !== BASE_CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
 
 async function appShell() {
@@ -42,6 +43,7 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== location.origin) return; // Open Food Facts va directo a la red
+  if (url.pathname.endsWith('/data/alimentos.csv')) return; // index.html decide cuándo usar la copia y cuándo la red
   if (req.mode === 'navigate') { e.respondWith(navigate(e)); return; }
   e.respondWith(caches.match(req, {ignoreSearch: true}).then(hit => hit || fetch(req).then(async r => {
     if (r.ok) { const cp = await plain(r.clone()); caches.open(CACHE).then(c => c.put(req, cp)); }
