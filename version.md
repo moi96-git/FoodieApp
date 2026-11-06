@@ -1,5 +1,58 @@
 # Hoja: historial de versiones
 
+## Versión 1.5 · Estimar y contrastar con la báscula
+
+Objetivo: que lo más fácil al cerrar un día incompleto o fuera de plan sea estimar cuánto fue, en 2 o 3 toques y sin culpa, y que el impacto de los días que no cuentan sea explícito.
+
+### Estimar
+- **Paso 3 de la hoja de cierre:** "Estimar" es la primera opción, con la etiqueta "Recomendado". "Marcar y seguir" queda como secundaria y "Completar el registro" como terciaria.
+- **Preguntas por causa** (una sección por cada causa elegida; el total es la suma):
+  - Comí de más, Celebración u Otro: "Un poco", "Bastante" o "Mucho" (15 %, 35 % y 60 % de las calorías objetivo del día, redondeadas a 50).
+  - Tomé alcohol: de 0 a 12 copas por las kcal de cada copa.
+  - Comí fuera, Se me olvidó o Viaje: "¿Qué comidas faltan?". Cada comida usa su promedio de los últimos 14 días que cuentan (mínimo 3 muestras); si no hay datos, el objetivo dividido entre las comidas.
+  - Comí muy poco: sin cifra; "Contar el día tal como está".
+- **Total visible** ("≈ 700 kcal"), con − y + de 50 en 50, "Escribir otra cantidad" y un tope de 3.000 kcal.
+- **Mensaje final:** "Listo. Ayer cuenta con unas 700 kcal estimadas. Mañana empieza en limpio." con "Planear mañana".
+- **Reglas:** un día estimado cuenta en promedios, progreso y Constancia. Exige al menos un alimento: si se eliminan todos, pasa a marcado, se descarta la estimación y se avisa. Si se añaden alimentos después, nada se ajusta solo: aparece "Revisar estimación".
+- **Pantallas:** Hoy muestra "incluye 700 kcal estimadas" y la fila "Ajuste estimado: +700 kcal" con "Cambiar". La tarjeta de cierre dice "Cerrado: fuera de plan · alcohol · +450 kcal estimadas" y permite cambiar entre estimar, marcar o completar. Días pendientes ofrece "Estimar" en cada día con alimentos.
+- **Cobertura:** "Calculado con 23 de 30 días: 4 con estimación (+3.200 kcal), 3 sin contar."
+
+### Calorías frente a báscula
+- Tarjeta nueva en Mes y en Semana: "Por calorías: −0,5 kg. Por báscula: −0,2 kg."
+- La báscula usa el peso suavizado al final del periodo menos el del inicio (la lectura más cercana previa, hasta 7 días antes). Solo aparece con al menos 2 lecturas separadas 5 días o más, y nunca cuando el progreso está en 0 por el límite de días grises.
+- Si la báscula muestra 0,3 kg menos de progreso que las calorías en Mes (0,2 en Semana), lo dice sin alarma y menciona los días sin contar.
+
+### Aviso de días sin cerrar más discreto
+- `nagDays()`: el aviso solo cubre días abiertos hace 1 o 2 días, solo aparece al mirar hoy y es una línea compacta con "Cerrar" y "×".
+- Se descarta deslizando hacia cualquier lado o con la "×", y no vuelve para ese día (`settings.closeHidden`). El gesto es el helper reutilizable `swipeable(el, opciones)`.
+- Siempre se puede cerrar desde: el día gris (también tocándolo en el semáforo o en las barras), Constancia, la tarjeta de progreso en 0 y la nueva fila "Días sin cerrar: N · Ver" en Ajustes.
+- **Promedios del mes:** texto discreto si hay días sin cerrar o marcados.
+- **Rachas de 20 días o más:** sin ese texto; progreso con mensaje neutro y enlace discreto; "Empezar de nuevo hoy" en Días pendientes cierra los días vacíos como marcados; y una sola vez, "Qué bueno verte de nuevo. Hoy empieza en limpio."
+
+### Hora para toda una comida
+- `timeControl()` y `openTimeSheet()`: hora nativa, −15, +15, "Ahora" y "Quitar hora", reutilizables.
+- "Cambiar hora de la comida" en el menú de cada comida y etiqueta tocable junto al total ("13:15" o "13:10–13:40"). Se aplica a alimentos y macros directos del día que se está viendo, y se puede deshacer.
+
+### Semáforo
+- Sin ✕ en toda la app: el punto rojo queda sin glifo, con su etiqueta accesible.
+- Nuevo estado "En curso" (`live`) para hoy sin cerrar y días futuros: anillo neutro mientras no se llega al 90 % del objetivo (100 % en proteína). Al entrar en rango o superarlo se evalúa como siempre. Un hoy cerrado se evalúa completo.
+- Corregido: exactamente +10 % daba ámbar por redondeo de coma flotante.
+
+### Ajustes y datos
+- Sección "Estimaciones" con "kcal por copa" (150 por defecto).
+- Sigue el formato v4. Campos nuevos, todos opcionales: `close.mode = 'est'`, `close.adj`, `close.parts`, `close.n`, `settings.estDrink`, `settings.closeHidden`, `settings.welcomeFor`. Exportar e importar los incluyen; las copias anteriores se importan sin problema.
+- `close.s = 'est'`, reservado en la 1.4, ya no existe: la estimación va en `close.mode`.
+- `sw.js`: nueva versión de caché.
+
+### Para tener en cuenta
+- **Macros sin días estimados:** las kcal estimadas no traen macros. La media de kcal incluye esos días, pero las de proteína, carbohidratos y grasas no. Las barras de macros del día y los análisis por alimento (de dónde vienen tus calorías, NOVA, horario) usan solo lo registrado.
+- **Diferencia con la báscula:** las calorías son una estimación y el peso varía por agua y sal. Una diferencia no prueba que falten registros; es una señal para revisar. Por dentro, positivo significa acercarse al objetivo; en pantalla se muestra el cambio de peso (−0,5 kg = bajó).
+- Un día estimado usa el color neutro en Hoy, en las barras y en el semáforo (≈), aunque quede fuera de rango. Sí cuenta en "Días en rango" si lo está.
+- El aviso desaparece a los 2 días, pero el día sigue en gris hasta que se cierre.
+- Hoy cuenta en las medias aunque esté a medias, así que por la mañana las baja y el progreso sale más alto de lo real. No se cambió en esta versión.
+
+---
+
 ## Versión 1.4 · Cierre del día
 
 Objetivo: que cada día se cierre, salga bien o mal, y que volver a registrar sea fácil y sin culpa. La constancia importa más que el número exacto.
